@@ -1,0 +1,21 @@
+version: "3.9"
+services:
+  # docker-compose run --rm speaker
+  speaker:
+    image: amd64/alpine
+    container_name: speaker
+    build:
+      context: .
+      dockerfile: ./docker/speaker.dockerfile
+    volumes:
+      - type: bind
+        source: .
+        target: /app
+    privileged: true
+    cap_add:
+      - SYS_ADMIN
+    devices:
+      - /dev
+    network_mode: "host"
+    #environment:
+      #- UDEV=1
