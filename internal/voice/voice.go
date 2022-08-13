@@ -112,7 +112,7 @@ func (v *VoiceStore) SpeekLoop(ctx context.Context) (err error) {
 			v.SpeakMe = "пауза снята"
 		}
 
-		err = v.Say()
+		err = v.Say(ctx)
 
 		if err != nil {
 			logger.Log.Info("SpeakLoop",
@@ -148,7 +148,7 @@ func (v *VoiceStore) Requset(method, input string) (out string, err error) {
 	return
 }
 
-func (v *VoiceStore) Say() (err error) {
+func (v *VoiceStore) Say(ctx context.Context) (err error) {
 	str := fmt.Sprintf(`{"Text": "%s"}`, v.SpeakMe)
 	out, err := v.Requset("play_on_android", str)
 

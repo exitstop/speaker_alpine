@@ -24,6 +24,8 @@ type VoiceStore struct {
 	Pause       bool
 	SpeechSpeed float64
 	NoTranslate bool // не переводить текст
+	c1          *exec.Cmd
+	c2          *exec.Cmd
 }
 
 func Create() (v VoiceStore) {
@@ -47,7 +49,7 @@ func (v *VoiceStore) Start(ctx context.Context) (err error) {
 	logger.Log.Sync()
 
 	v.SpeakMe = "инициализация успешна"
-	v.Say()
+	v.Say(ctx)
 	v.SpeekLoop(ctx)
 
 	return
@@ -66,6 +68,7 @@ func (v *VoiceStore) SpeedAdd() (out string, speed float64, err error) {
 }
 
 func (v *VoiceStore) SpeekLoop(ctx context.Context) (err error) {
+	ctxSpeak, cancel := context.WithCancel(ctx)
 	for {
 		select {
 		case v.SpeakMe = <-v.ChanSpeakMe:
@@ -77,20 +80,26 @@ func (v *VoiceStore) SpeekLoop(ctx context.Context) (err error) {
 			v.SpeakMe = "пауза снята"
 		}
 
+		cancel()
+		//v.c1.Process.Kill()
+		ctxSpeak, cancel = context.WithCancel(ctx)
+
 		logger.Log.Info("Say",
 			zap.String("text", v.SpeakMe),
 		)
 		logger.Log.Sync()
 
-		err := v.Say()
+		go func() {
+			err := v.Say(ctxSpeak)
 
-		if err != nil {
-			logger.Log.Info("Say",
-				zap.String("error", err.Error()),
-			)
-			logger.Log.Sync()
-			continue
-		}
+			if err != nil {
+				logger.Log.Info("Say",
+					zap.String("error", err.Error()),
+				)
+				logger.Log.Sync()
+				return
+			}
+		}()
 
 		//time.Sleep(time.Second * 1)
 	}
@@ -118,10 +127,32 @@ func (v *VoiceStore) Requset(method, input string) (out string, err error) {
 	return
 }
 
-func (v *VoiceStore) Say() (err error) {
-	strCommand := fmt.Sprintf(`gtts-cli -l ru "%s" | mpg123 -d %d --pitch 0 -`, v.SpeakMe, int(v.SpeechSpeed))
-	cmdCurl := exec.Command("/bin/bash", "-c", strCommand)
-	err = cmdCurl.Run()
+func (v *VoiceStore) Say(ctx context.Context) (err error) {
+	strCommand := fmt.Sprintf(`gtts-cli -l ru "%s"`, v.SpeakMe)
+	v.c1 = exec.CommandContext(ctx, "/bin/bash", "-c", strCommand)
+	stdout1, err := v.c1.StdoutPipe()
+	err = v.c1.Start()
+	if err != nil {
+		return
+	}
+
+	strCommand2 := fmt.Sprintf(`mpg123 -d %d --pitch 0 -`, int(v.SpeechSpeed))
+	v.c2 = exec.CommandContext(ctx, "/bin/bash", "-c", strCommand2)
+	v.c2.Stdin = stdout1
+	err = v.c2.Start()
+
+	if err != nil {
+		return
+	}
+	err = v.c1.Wait()
+	if err != nil {
+		return
+	}
+	err = v.c2.Wait()
+	if err != nil {
+		return
+	}
+
 	return
 }
 

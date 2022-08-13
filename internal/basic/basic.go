@@ -9,7 +9,7 @@ type VoiceInterface interface {
 	SpeedAdd() (string, float64, error)
 	SpeekLoop(ctx context.Context) error
 	Requset(string, string) (string, error)
-	Say() error
+	Say(ctx context.Context) error
 	ChSpeakMe(string)
 	Exit()
 	GetPause() bool
