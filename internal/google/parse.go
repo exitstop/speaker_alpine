@@ -3,6 +3,7 @@ package google
 import (
 	"fmt"
 	"strings"
+	"unicode/utf8"
 )
 
 // Парсим текст
@@ -11,7 +12,7 @@ func ParseGoogle6(text string) (fullText string, err error) {
 	text = strings.ReplaceAll(text, ")]}'", "")
 	tr := Tr{}
 
-	tr.ToMap(text, 0, len(text))
+	tr.ToMap(text, 0, utf8.RuneCountInString(text))
 	for _, it := range tr.TextOnly {
 		fullText += it
 	}
