@@ -163,13 +163,6 @@ func ParseGoogle7(textBeforeTranslate, text string) (fullText string, err error)
 	count := strings.Count(text2, ".")
 	count += strings.Count(text2, "?")
 	var countSentence = 0
-	if count == 0 {
-		count = 3
-		countSentence = count - 1
-	} else {
-		count += 2
-		countSentence = count - 1
-	}
 
 	//if count > 6 {
 	//count = 6
@@ -191,12 +184,17 @@ func ParseGoogle7(textBeforeTranslate, text string) (fullText string, err error)
 	}
 
 	lenText := len(localText)
-	if count > lenText {
-		count = 1
-		countSentence = 1
+	if count == 0 {
+		count = 3
+		countSentence = count - 1
 	} else {
 		count = int(float64(lenText) * 0.32)
 		countSentence = count - 1
+	}
+
+	if count > lenText {
+		count = 1
+		countSentence = 1
 	}
 
 	fmt.Println("count: ", count)
