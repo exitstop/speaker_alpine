@@ -147,6 +147,7 @@ func ExtratText(in string) (out string, err error) {
 var regexpString = `\\"(?P<one>([^,][А-Яа-я- \r\n\v\w'*.:,\d]{4,}))\\"`
 
 func ParseGoogle7(textBeforeTranslate, text string) (fullText string, err error) {
+
 	reg0, err := regexp.Compile(regexpString)
 	if err != nil {
 		return
@@ -165,14 +166,15 @@ func ParseGoogle7(textBeforeTranslate, text string) (fullText string, err error)
 	if count == 0 {
 		count = 3
 		countSentence = count - 1
-	} else if count > 2 {
-		count = 5
-		countSentence = count - 1
 	} else {
-		count *= 2
-		count += 1
+		count += 2
 		countSentence = count - 1
 	}
+
+	//if count > 6 {
+	//count = 6
+	//countSentence = count - 1
+	//}
 	fmt.Println("lenTextBeforeTranslate:", lenTextBeforeTranslate)
 	//if lenTextBeforeTranslate > 1600 {
 	//fmt.Println("textBeforeTranslate:", textBeforeTranslate)
@@ -192,6 +194,9 @@ func ParseGoogle7(textBeforeTranslate, text string) (fullText string, err error)
 	if count > lenText {
 		count = 1
 		countSentence = 1
+	} else {
+		count = int(float64(lenText) * 0.32)
+		countSentence = count - 1
 	}
 
 	fmt.Println("count: ", count)
