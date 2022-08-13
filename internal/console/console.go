@@ -1,6 +1,7 @@
 package console
 
 import (
+	"context"
 	"fmt"
 	"regexp"
 	"strings"
@@ -100,17 +101,13 @@ FOR0:
 	return
 }
 
-func Add(gstore *google.GStore, voice basic.VoiceInterface) {
-	fmt.Println("--- Please press ctrl + shift + q to stop hook ---")
-	hook.Register(hook.KeyDown, []string{"q", "ctrl", "shift"}, func(e hook.Event) {
-		fmt.Println("ctrl-shift-q")
-
+func Add(cancel context.CancelFunc, gstore *google.GStore, voice basic.VoiceInterface) {
+	fmt.Println("--- Please press ctrl + q to stop hook ---")
+	hook.Register(hook.KeyDown, []string{"q", "ctrl"}, func(e hook.Event) {
+		fmt.Println("ctrl-q")
 		voice.ChSpeakMe("завершение программы")
-
 		time.Sleep(1 * time.Second)
-
-		voice.Exit()
-		voice.Exit()
+		cancel()
 	})
 
 	hook.Register(hook.KeyDown, []string{"p", "ctlr", "alt"}, func(e hook.Event) {
@@ -118,9 +115,11 @@ func Add(gstore *google.GStore, voice basic.VoiceInterface) {
 
 		if !voice.GetPause() {
 			voice.ChSpeakMe("пауза")
+		} else {
+			voice.ChSpeakMe("пауза снята")
 		}
 
-		time.Sleep(time.Millisecond * 1)
+		//time.Sleep(time.Millisecond * 1)
 		voice.SetPause()
 	})
 

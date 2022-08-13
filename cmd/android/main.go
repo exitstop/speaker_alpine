@@ -54,8 +54,8 @@ func main() {
 	}()
 
 	go func() {
-		console.Keyboard()
-		console.Add(&gstore, &v)
+		//console.Keyboard()
+		console.Add(cancel, &gstore, &v)
 		console.Low()
 		//cancel()
 	}()
