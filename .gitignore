@@ -7,6 +7,7 @@
 # Разрешаем мониторить эти папки
 !*internal
 !*internal/google
+!*internal/google/data_test
 !*internal/gtts
 !*internal/voice
 !*internal/console

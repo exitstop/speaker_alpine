@@ -11,7 +11,7 @@ import (
 
 func Create() (gstore GStore) {
 	gstore.TimeoutWaitTranslate = 100 * time.Millisecond
-	gstore.CountLoopWaitTranslate = 30
+	gstore.CountLoopWaitTranslate = 50
 	gstore.ChanTranslateMe = make(chan string)
 	gstore.Drop = make(chan struct{})
 	gstore.Terminatate = make(chan bool)
@@ -135,8 +135,8 @@ func (s *GStore) WaitTextTranslate() (parseText string, err error) {
 			time.Sleep(s.TimeoutWaitTranslate)
 			continue
 		}
-		fmt.Println(text)
-		parseText, err = ParseGoogle6(text)
+		fmt.Println("---------------------------------------\n" + text + "\n---------------------------------------\n")
+		parseText, err = ParseGoogle7(s.ToTranslete, text)
 		if err != nil {
 			err = fmt.Errorf("перевод не распарсился")
 			return parseText, err

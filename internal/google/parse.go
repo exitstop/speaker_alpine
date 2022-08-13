@@ -2,6 +2,7 @@ package google
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 	"unicode/utf8"
 )
@@ -94,7 +95,7 @@ func (tr *Tr) ToMap(text string, braketsStart, braketsEnd int) {
 		start++
 	}
 
-	fmt.Println(len(tr.Pair))
+	//fmt.Println(len(tr.Pair))
 
 	for _, it := range tr.Pair {
 		if it.Level != 8 {
@@ -109,7 +110,7 @@ func (tr *Tr) ToMap(text string, braketsStart, braketsEnd int) {
 		tr.TextOnly = append(tr.TextOnly, out)
 	}
 
-	fmt.Println(tr.TextOnly)
+	//fmt.Println(tr.TextOnly)
 
 }
 
@@ -127,5 +128,89 @@ func ExtratText(in string) (out string, err error) {
 	if start+2 < end {
 		out = in[start+2 : end]
 	}
+	return
+}
+
+/*
+\"([^\"]*)\"
+(?P<one>\[([^\"]*)\])
+(?P<one>\\"([^[]*)\\")
+
+		`]}'
+
+1069
+[["wrb.fr","MkEWBc","[[null,null,\"en\",[[[0,[[[null,113]],[true]]]],113],[[\"A static page is a page delivered to the user exactly as stored and with no chance on being changed, end of story\",null,null,113]]],[[[null,\"Staticheskaya stranitsa - eto stranitsa, dostavlennaya pol'zovatelyu tochno tak zhe, kak khranitsya, i bez shansov na izmeneniye, konets istorii\",null,null,null,[[\"Статическая страница - это страница, доставленная пользователю точно так же, как хранится, и без шансов на изменение, конец истории\",null,null,null,[[\"1\",[1]],[\"Статическая страница - это страница, доставленная пользователю точно так же, как хранится, и без шансов изменить, конец истории\",[11]]]]]]],\"ru\",1,\"en\",[\"A static page is a page delivered to the user exactly as stored and with no chance on being changed, end of story\",\"auto\",\"ru\",true]],\"en\"]",null,null,null,"generic"],["di",31],["af.httprm",30,"9058989769143286083",8]]
+26
+[["e",4,null,null,1428]]
+*/
+
+var regexpString = `\\"(?P<one>([^,][А-Яа-я- \r\n\v\w'*.:,\d]{4,}))\\"`
+
+func ParseGoogle7(textBeforeTranslate, text string) (fullText string, err error) {
+	reg0, err := regexp.Compile(regexpString)
+	if err != nil {
+		return
+	}
+
+	lenTextBeforeTranslate := utf8.RuneCountInString(textBeforeTranslate)
+	if lenTextBeforeTranslate < 1 {
+		return
+	}
+
+	text2 := textBeforeTranslate[:lenTextBeforeTranslate-1]
+	// count substring in string
+	count := strings.Count(text2, ".")
+	count += strings.Count(text2, "?")
+	var countSentence = 0
+	if count == 0 {
+		count = 3
+		countSentence = count - 1
+	} else {
+		count *= 2
+		count += 1
+		countSentence = count - 1
+	}
+	fmt.Println("lenTextBeforeTranslate:", lenTextBeforeTranslate)
+	//if lenTextBeforeTranslate > 1600 {
+	//fmt.Println("textBeforeTranslate:", textBeforeTranslate)
+	//}
+
+	// iterate all matches
+	iter := reg0.FindAllStringSubmatchIndex(text, -1)
+
+	var localText []string
+	for index, it := range iter {
+		t := text[it[0]:it[1]]
+		fmt.Printf("[%d] %s\n", index, t)
+		localText = append(localText, t)
+	}
+
+	lenText := len(localText)
+	if count > lenText {
+		count = 1
+		countSentence = 1
+	}
+
+	fmt.Println("count: ", count)
+
+	localText = localText[count : lenText-1]
+	lenText -= count + 1
+
+	countVariant := lenText / countSentence
+	if lenText == 3 || lenText == 2 {
+		countVariant = lenText
+	}
+
+	fmt.Println(localText)
+	fmt.Println("countVariant:", countVariant)
+	fmt.Println("lenText:", lenText)
+	fmt.Println("countSentence: ", countSentence)
+
+	for i := 0; i < lenText; i += countVariant {
+		fullText += localText[i]
+	}
+
+	fullText = strings.ReplaceAll(fullText, "\\\"", ".")
+
 	return
 }
