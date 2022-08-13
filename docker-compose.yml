@@ -11,11 +11,17 @@ services:
       - type: bind
         source: .
         target: /app
+      - /tmp/.X11-unix:/tmp/.X11-unix
+      - ~/.Xauthority:/root/.Xauthority
+      - "/dev/input:/dev/input:ro"
+      - "/run/udev:/run/udev:ro"
     privileged: true
     cap_add:
       - SYS_ADMIN
-    devices:
-      - /dev
+    #devices:
+    #tmpfs:
+      #- "/dev"
     network_mode: "host"
-    #environment:
-      #- UDEV=1
+    environment:
+      UDEV: 1
+      DISPLAY: $DISPLAY

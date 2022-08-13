@@ -12,7 +12,6 @@ import (
 	//"github.com/exitstop/robotgo"
 	"github.com/exitstop/speaker_alpine/internal/basic"
 	"github.com/exitstop/speaker_alpine/internal/google"
-	"github.com/go-vgo/robotgo"
 	hook "github.com/robotn/gohook"
 	"github.com/sirupsen/logrus"
 )
@@ -103,7 +102,7 @@ FOR0:
 
 func Add(gstore *google.GStore, voice basic.VoiceInterface) {
 	fmt.Println("--- Please press ctrl + shift + q to stop hook ---")
-	robotgo.EventHook(hook.KeyDown, []string{"q", "ctrl", "shift"}, func(e hook.Event) {
+	hook.Register(hook.KeyDown, []string{"q", "ctrl", "shift"}, func(e hook.Event) {
 		fmt.Println("ctrl-shift-q")
 
 		voice.ChSpeakMe("завершение программы")
@@ -114,7 +113,7 @@ func Add(gstore *google.GStore, voice basic.VoiceInterface) {
 		voice.Exit()
 	})
 
-	robotgo.EventHook(hook.KeyDown, []string{"p", "ctlr", "alt"}, func(e hook.Event) {
+	hook.Register(hook.KeyDown, []string{"p", "ctlr", "alt"}, func(e hook.Event) {
 		fmt.Println("ctrl-alt-p")
 
 		if !voice.GetPause() {
@@ -125,7 +124,7 @@ func Add(gstore *google.GStore, voice basic.VoiceInterface) {
 		voice.SetPause()
 	})
 
-	robotgo.EventHook(hook.KeyDown, []string{"t", "alt"}, func(e hook.Event) {
+	hook.Register(hook.KeyDown, []string{"t", "alt"}, func(e hook.Event) {
 		fmt.Println("alt-t")
 
 		voice.InvertTranslate()
@@ -137,7 +136,7 @@ func Add(gstore *google.GStore, voice basic.VoiceInterface) {
 		}
 	})
 
-	robotgo.EventHook(hook.KeyDown, []string{"-", "alt"}, func(e hook.Event) {
+	hook.Register(hook.KeyDown, []string{"-", "alt"}, func(e hook.Event) {
 		fmt.Println("-", "alt")
 		out, speed, err := voice.SpeedSub()
 		if err != nil {
@@ -153,7 +152,7 @@ func Add(gstore *google.GStore, voice basic.VoiceInterface) {
 		voice.ChSpeakMe(str)
 	})
 
-	robotgo.EventHook(hook.KeyDown, []string{"+", "alt"}, func(e hook.Event) {
+	hook.Register(hook.KeyDown, []string{"+", "alt"}, func(e hook.Event) {
 		fmt.Println("+", "alt")
 		out, speed, err := voice.SpeedAdd()
 		if err != nil {
@@ -170,7 +169,7 @@ func Add(gstore *google.GStore, voice basic.VoiceInterface) {
 	})
 
 	fmt.Println("--- Please press c---")
-	robotgo.EventHook(hook.KeyDown, []string{"c", "ctrl"}, func(e hook.Event) {
+	hook.Register(hook.KeyDown, []string{"c", "ctrl"}, func(e hook.Event) {
 		if voice.GetPause() {
 			return
 		}
@@ -220,12 +219,12 @@ func Add(gstore *google.GStore, voice basic.VoiceInterface) {
 		}
 	})
 
-	robotgo.EventHook(hook.KeyDown, []string{"r", "ctrl", "shift"}, func(e hook.Event) {
+	hook.Register(hook.KeyDown, []string{"r", "ctrl", "shift"}, func(e hook.Event) {
 		fmt.Println("r", "ctrl", "shift")
 	})
 
-	s := robotgo.EventStart()
-	<-robotgo.EventProcess(s)
+	s := hook.Start()
+	<-hook.Process(s)
 }
 
 func Low() {

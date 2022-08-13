@@ -19,6 +19,10 @@ RUN set -eux; \
         pkg-config \
         wget \
         git ca-certificates \
+        libx11-dev xorg-dev libxtst-dev \
+        libpng++-dev \
+        xsel xclip \
+        xcb libxcb-xkb-dev x11-xkb-utils libx11-xcb-dev libxkbcommon-x11-dev libxkbcommon-dev \
         && update-ca-certificates \
         ; \
         rm -rf /var/lib/apt/lists/*

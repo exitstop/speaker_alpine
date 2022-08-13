@@ -8,8 +8,8 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
+	"github.com/exitstop/speaker_alpine/internal/console"
 	"github.com/exitstop/speaker_alpine/internal/google"
 	"github.com/exitstop/speaker_alpine/internal/logger"
 	"github.com/exitstop/speaker_alpine/internal/voice"
@@ -54,24 +54,24 @@ func main() {
 	}()
 
 	go func() {
-		//console.Keyboard()
-		//console.Add(&gstore, &v)
-		//console.Low()
+		console.Keyboard()
+		console.Add(&gstore, &v)
+		console.Low()
 		//cancel()
 	}()
 
 	// Переводчик сам будет слать в chan ChanSpeakMe, чтобы голос воспроизводился
-	go func() {
-		time.Sleep(3 * time.Second)
-		gstore.ChanTranslateMe <- `You can also specify JSHandle as the property value if you want live objects to be passed into the event:`
+	//go func() {
+	//time.Sleep(3 * time.Second)
+	//gstore.ChanTranslateMe <- `You can also specify JSHandle as the property value if you want live objects to be passed into the event:`
 
-		fmt.Println("__0__")
-		time.Sleep(3 * time.Second)
-		gstore.ChanTranslateMe <- `Here you hand errorChannelWatch the errorList as a value.`
+	//fmt.Println("__0__")
+	//time.Sleep(3 * time.Second)
+	//gstore.ChanTranslateMe <- `Here you hand errorChannelWatch the errorList as a value.`
 
-		time.Sleep(3 * time.Second)
-		gstore.ChanTranslateMe <- `To remedy the situation, either hand a slice pointer to errorChannelWatch or rewrite it as a call to a closure, capturing errorList.`
-	}()
+	//time.Sleep(3 * time.Second)
+	//gstore.ChanTranslateMe <- `To remedy the situation, either hand a slice pointer to errorChannelWatch or rewrite it as a call to a closure, capturing errorList.`
+	//}()
 
 	//go func() {
 	//for i := 0; i < 20; i++ {
