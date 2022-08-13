@@ -1,4 +1,4 @@
-package voice
+package gtts
 
 import (
 	"bytes"
@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os/exec"
 	"time"
 
 	"github.com/exitstop/speaker_alpine/internal/logger"
@@ -34,68 +35,32 @@ func Create() (v VoiceStore) {
 	v.Terminatate = make(chan bool)
 	v.ChanPause = make(chan bool)
 
-	v.SpeechSpeed = 3.7
+	v.SpeechSpeed = 3
 
 	return v
 }
 
 func (v *VoiceStore) Start(ctx context.Context) (err error) {
-	out, err := v.Requset("get_engine", `{"Text": ""}`)
-	if err != nil {
-		return err
-	}
-
-	logger.Log.Info("gstore.LoopTransalate",
-		zap.String("out", string(out)),
+	logger.Log.Info("gtts",
+		zap.String("command", "sudo -H pip3 install gTTS; sudo apt install -y mpg123"),
 	)
-	defer logger.Log.Sync()
+	logger.Log.Sync()
 
-	// com.google.android.tts com.acapelagroup.android.tts
-	out, err = v.Requset("set_engine", `{"Text": "com.google.android.tts"}`)
-	if err != nil {
-		return err
-	}
+	v.SpeakMe = "инициализация успешна"
+	v.Say()
+	v.SpeekLoop(ctx)
 
-	logger.Log.Info("set_engine",
-		zap.String("out", string(out)),
-	)
-
-	out, err = v.Requset("set_speech_rate", `{"SpeechRate": 3}`)
-	if err != nil {
-		return err
-	}
-
-	logger.Log.Info("set_speech_rate",
-		zap.String("out", string(out)),
-	)
-
-	str := fmt.Sprintf(`{"Text": "Инициализация успешна"}`)
-	out, err = v.Requset("play_on_android", str)
-	if err != nil {
-		return err
-	}
-
-	logger.Log.Info("play_on_android",
-		zap.String("out", string(out)),
-	)
-
-	return v.SpeekLoop(ctx)
+	return
 }
 
 func (v *VoiceStore) SpeedSub() (out string, speed float64, err error) {
-	v.SpeechSpeed -= 0.1
-	strSpeed := fmt.Sprintf(`{"SpeechRate": %.2f}`, v.SpeechSpeed)
-	out, err = v.Requset("set_speech_rate", strSpeed)
-	out = fmt.Sprintf("%s %.1f", out, v.SpeechSpeed)
+	v.SpeechSpeed -= 1
 	speed = v.SpeechSpeed
 	return
 }
 
 func (v *VoiceStore) SpeedAdd() (out string, speed float64, err error) {
-	v.SpeechSpeed += 0.1
-	strSpeed := fmt.Sprintf(`{"SpeechRate": %.2f}`, v.SpeechSpeed)
-	out, err = v.Requset("set_speech_rate", strSpeed)
-	out = fmt.Sprintf("%s %.1f", out, v.SpeechSpeed)
+	v.SpeechSpeed += 1
 	speed = v.SpeechSpeed
 	return
 }
@@ -105,18 +70,23 @@ func (v *VoiceStore) SpeekLoop(ctx context.Context) (err error) {
 		select {
 		case v.SpeakMe = <-v.ChanSpeakMe:
 		case <-ctx.Done():
-			err = fmt.Errorf("ctx.Done")
+			err = fmt.Errorf("terminatate gtts")
 			return
 		case v.Pause = <-v.ChanPause:
 			v.Pause = <-v.ChanPause
 			v.SpeakMe = "пауза снята"
 		}
 
-		err = v.Say()
+		logger.Log.Info("Say",
+			zap.String("text", v.SpeakMe),
+		)
+		logger.Log.Sync()
+
+		err := v.Say()
 
 		if err != nil {
-			logger.Log.Info("SpeakLoop",
-				zap.String("err", err.Error()),
+			logger.Log.Info("Say",
+				zap.String("error", err.Error()),
 			)
 			logger.Log.Sync()
 			continue
@@ -149,13 +119,9 @@ func (v *VoiceStore) Requset(method, input string) (out string, err error) {
 }
 
 func (v *VoiceStore) Say() (err error) {
-	str := fmt.Sprintf(`{"Text": "%s"}`, v.SpeakMe)
-	out, err := v.Requset("play_on_android", str)
-
-	logger.Log.Info("play_on_android",
-		zap.String("out", string(out)),
-	)
-	logger.Log.Sync()
+	strCommand := fmt.Sprintf(`gtts-cli -l ru "%s" | mpg123 -d %d --pitch 0 -`, v.SpeakMe, int(v.SpeechSpeed))
+	cmdCurl := exec.Command("/bin/bash", "-c", strCommand)
+	err = cmdCurl.Run()
 	return
 }
 
@@ -164,7 +130,6 @@ func (v *VoiceStore) ChSpeakMe(in string) {
 	return
 }
 func (v *VoiceStore) Exit() {
-	fmt.Println("VoiceStore exit")
 	v.Terminatate <- true
 }
 func (v *VoiceStore) GetPause() bool {

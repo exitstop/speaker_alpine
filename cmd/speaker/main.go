@@ -9,17 +9,24 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/exitstop/speaker_alpine/internal/basic"
 	"github.com/exitstop/speaker_alpine/internal/console"
 	"github.com/exitstop/speaker_alpine/internal/google"
+	"github.com/exitstop/speaker_alpine/internal/gtts"
 	"github.com/exitstop/speaker_alpine/internal/logger"
 	"github.com/exitstop/speaker_alpine/internal/voice"
 	"go.uber.org/zap"
 )
 
 func main() {
-	var nFlag string
-	var nFlagTransel bool
+	var (
+		nFlag        string
+		nGoogleTts   bool
+		nFlagTransel bool
+		v            basic.VoiceInterface
+	)
 
+	flag.BoolVar(&nGoogleTts, "google_speech", false, "use google tts")
 	flag.StringVar(&nFlag, "ip", "192.168.0.177", "ip")
 	flag.BoolVar(&nFlagTransel, "t", false, "translate")
 	flag.Parse()
@@ -35,12 +42,20 @@ func main() {
 	}
 	defer gstore.Stop()
 
-	// voice
-	v := voice.Create()
-	v.IP = nFlag + ":8484"
-
-	gstore.Terminatate = v.Terminatate
-	gstore.SendTranslateToSpeak = v.ChanSpeakMe
+	if nGoogleTts {
+		// google speech
+		v_ := gtts.Create()
+		gstore.Terminatate = v_.Terminatate
+		gstore.SendTranslateToSpeak = v_.ChanSpeakMe
+		v = &v_
+	} else {
+		// voice
+		v_ := voice.Create()
+		v_.IP = nFlag + ":8484"
+		gstore.Terminatate = v_.Terminatate
+		gstore.SendTranslateToSpeak = v_.ChanSpeakMe
+		v = &v_
+	}
 
 	ctx, cancel := context.WithCancel(context.Background())
 
@@ -55,7 +70,7 @@ func main() {
 
 	go func() {
 		//console.Keyboard()
-		console.Add(cancel, &gstore, &v)
+		console.Add(cancel, &gstore, v)
 		console.Low()
 		//cancel()
 	}()

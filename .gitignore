@@ -7,13 +7,15 @@
 # Разрешаем мониторить эти папки
 !*internal
 !*internal/google
+!*internal/gtts
 !*internal/voice
 !*internal/console
 !*internal/logger
 !*internal/basic
 !*docker
 !*cmd
-!*cmd/android
+!*cmd/speaker
+!*cmd/gtts
 
 # И в этих папках брать только эти форматы
 !*.ini
