@@ -196,6 +196,9 @@ func ParseGoogle7(textBeforeTranslate, text string) (fullText string, err error)
 			countSentence = count - 1
 		}
 	}
+	if countSentence == 0 {
+		countSentence = 1
+	}
 
 	fmt.Println("count: ", count)
 
