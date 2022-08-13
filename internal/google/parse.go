@@ -165,6 +165,9 @@ func ParseGoogle7(textBeforeTranslate, text string) (fullText string, err error)
 	if count == 0 {
 		count = 3
 		countSentence = count - 1
+	} else if count > 2 {
+		count = 5
+		countSentence = count - 1
 	} else {
 		count *= 2
 		count += 1
