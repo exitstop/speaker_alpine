@@ -366,25 +366,30 @@ func ParseGoogle9(textBeforeTranslate, text string) (fullText string, err error)
 	diffArray = Threshold(diffArray)
 
 	for i := 0; i < len(diffArray); i++ {
+		//fmt.Printf("diff[%d] %s\n", diffArray[i], localTextOnlyRus[i])
 		if diffArray[i] != 0 {
 			fullText += localTextOnlyRus[i]
 		}
 	}
 
+	//fullText += localTextOnlyRus[i]
+
 	fmt.Println("localTextOnlyRus:", localTextOnlyRus)
+
 	return
 }
 
 func Threshold(a []int) (b []int) {
 	lenA := len(a)
+	b = append(b, 100)
 	for i := 0; i < lenA; i++ {
 		var v int
 		if i != 0 && i < lenA-1 {
 			if a[i] > a[i-1] && a[i] > a[i+1] {
 				v = a[i]
 			}
+			b = append(b, v)
 		}
-		b = append(b, v)
 	}
 	return
 }
