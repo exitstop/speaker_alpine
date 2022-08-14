@@ -136,7 +136,7 @@ func (s *GStore) WaitTextTranslate() (parseText string, err error) {
 			continue
 		}
 		fmt.Println("---------------------------------------\n" + text + "\n---------------------------------------\n")
-		parseText, err = ParseGoogle7(s.ToTranslete, text)
+		parseText, err = ParseGoogle9(s.ToTranslete, text)
 		if err != nil {
 			err = fmt.Errorf("перевод не распарсился")
 			return parseText, err

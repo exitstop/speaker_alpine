@@ -144,10 +144,12 @@ func ExtratText(in string) (out string, err error) {
 [["e",4,null,null,1428]]
 */
 
-var regexpString = `\\"(?P<one>([^,][А-Яа-я- \r\n\v\w«»'*.:,\d]{4,}))\\"`
+var (
+	regexpString        = `\\"(?P<one>([^,][А-Яа-я- \r\n\v\w«»'*.:,\d]{4,}))\\"`
+	regexpStringOnlyRus = `[А-Яа-я]`
+)
 
 func ParseGoogle7(textBeforeTranslate, text string) (fullText string, err error) {
-
 	reg0, err := regexp.Compile(regexpString)
 	if err != nil {
 		return
@@ -222,4 +224,200 @@ func ParseGoogle7(textBeforeTranslate, text string) (fullText string, err error)
 	fullText = strings.ReplaceAll(fullText, "\\\"", ".")
 
 	return
+}
+
+func ParseGoogle8(textBeforeTranslate, text string) (fullText string, err error) {
+	reg0, err := regexp.Compile(regexpString)
+	if err != nil {
+		return
+	}
+
+	lenTextBeforeTranslate := utf8.RuneCountInString(textBeforeTranslate)
+	if lenTextBeforeTranslate < 1 {
+		return
+	}
+
+	// iterate all matches
+	iter := reg0.FindAllStringSubmatchIndex(text, -1)
+
+	regOnlyRus, err := regexp.Compile(regexpStringOnlyRus)
+	if err != nil {
+		return
+	}
+
+	defer func() {
+		// clean text
+		fullText = strings.ReplaceAll(fullText, "\\\"", ".")
+	}()
+
+	var (
+		localText        []string
+		localTextOnlyRus []string
+	)
+	for index, it := range iter {
+		t := text[it[0]:it[1]]
+		fmt.Printf("[%d] %s\n", index, t)
+		localText = append(localText, t)
+	}
+
+	for _, it := range localText {
+		if regOnlyRus.MatchString(it) {
+			localTextOnlyRus = append(localTextOnlyRus, it)
+		}
+	}
+
+	lenText := len(localText)
+	lenlocalText := len(localText)
+	lenLocalTextOnlyRus := len(localTextOnlyRus)
+
+	var (
+		minusEndText          = 1
+		minusTransliteralText = 1
+	)
+	if lenlocalText == 3 {
+		minusTransliteralText = 0
+		return
+	}
+
+	lenlocalText -= (minusEndText + minusTransliteralText)
+	deltaOnlyEnglishText := lenlocalText - lenLocalTextOnlyRus
+	if deltaOnlyEnglishText <= 0 {
+		deltaOnlyEnglishText = 1
+	}
+
+	countVariant := lenLocalTextOnlyRus / deltaOnlyEnglishText
+	if lenText == 3 || lenText == 2 {
+		countVariant = 1
+	}
+
+	for i := 0; i < lenLocalTextOnlyRus; i += countVariant {
+		fullText += localTextOnlyRus[i]
+	}
+
+	fmt.Println("localTextOnlyRus:", localTextOnlyRus)
+
+	return
+}
+
+// Парсим переводчик Google и разделяем перевод методом похожести на предыдущие переводы, так как
+// google дает несколько вариантов одного предложения
+func ParseGoogle9(textBeforeTranslate, text string) (fullText string, err error) {
+	reg0, err := regexp.Compile(regexpString)
+	if err != nil {
+		return
+	}
+
+	lenTextBeforeTranslate := utf8.RuneCountInString(textBeforeTranslate)
+	if lenTextBeforeTranslate < 1 {
+		return
+	}
+
+	// iterate all matches
+	iter := reg0.FindAllStringSubmatchIndex(text, -1)
+
+	regOnlyRus, err := regexp.Compile(regexpStringOnlyRus)
+	if err != nil {
+		return
+	}
+
+	defer func() {
+		// clean text
+		fullText = strings.ReplaceAll(fullText, "\\\"", ".")
+	}()
+
+	var (
+		localText        []string
+		localTextOnlyRus []string
+	)
+	for index, it := range iter {
+		t := text[it[0]:it[1]]
+		fmt.Printf("[%d] %s\n", index, t)
+		localText = append(localText, t)
+	}
+
+	for _, it := range localText {
+		if regOnlyRus.MatchString(it) {
+			localTextOnlyRus = append(localTextOnlyRus, it)
+		}
+	}
+
+	lenLocalTextOnlyRus := len(localTextOnlyRus)
+
+	var (
+		mLast          map[string]int
+		diffArray      []int
+		countWordsLast int
+	)
+	for i := 0; i < lenLocalTextOnlyRus; i++ {
+		var lenDiff int
+		if i != 0 {
+			mCurrent := StringToMap(localTextOnlyRus[i])
+			lenDiff, _ = SubMap(mLast, mCurrent)
+		}
+		countWordsCurrent := CountWords(localTextOnlyRus[i])
+		if countWordsCurrent < 3 && countWordsLast < 3 {
+			lenDiff = 0
+		}
+		diffArray = append(diffArray, lenDiff)
+		mLast = StringToMap(localTextOnlyRus[i])
+		countWordsLast = countWordsCurrent
+	}
+
+	diffArray = Threshold(diffArray)
+
+	for i := 0; i < len(diffArray); i++ {
+		if diffArray[i] != 0 {
+			fullText += localTextOnlyRus[i]
+		}
+	}
+
+	fmt.Println("localTextOnlyRus:", localTextOnlyRus)
+	return
+}
+
+func Threshold(a []int) (b []int) {
+	lenA := len(a)
+	for i := 0; i < lenA; i++ {
+		var v int
+		if i != 0 && i < lenA-1 {
+			if a[i] > a[i-1] && a[i] > a[i+1] {
+				v = a[i]
+			}
+		}
+		b = append(b, v)
+	}
+	return
+}
+
+func StringToMap(s string) map[string]int {
+	m := make(map[string]int)
+	for _, c := range s {
+		m[string(c)]++
+	}
+	return m
+}
+
+func SubMap(a, b map[string]int) (int, map[string]int) {
+	lenDiff := 0
+	m := make(map[string]int)
+	if len(a) > len(b) {
+		for k, v := range a {
+			if v > b[k] {
+				m[k] = v - b[k]
+			}
+		}
+	} else {
+		for k, v := range b {
+			if v > a[k] {
+				m[k] = v - a[k]
+			}
+		}
+	}
+	for _, v := range m {
+		lenDiff += v
+	}
+	return lenDiff, m
+}
+func CountWords(s string) int {
+	return len(strings.Fields(s))
 }
