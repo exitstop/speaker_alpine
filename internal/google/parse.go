@@ -343,6 +343,10 @@ func ParseGoogle9(textBeforeTranslate, text string) (fullText string, err error)
 
 	lenLocalTextOnlyRus := len(localTextOnlyRus)
 
+	if lenLocalTextOnlyRus == 0 {
+		return
+	}
+
 	var (
 		mLast          map[string]int
 		diffArray      []int

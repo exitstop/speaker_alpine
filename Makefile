@@ -12,8 +12,8 @@ android:
 android_work:
 	go run cmd/speaker/main.go -ip 192.168.88.20
 
-google_speech:
-	go run cmd/speaker/main.go -google_speech true
+google_speech: build/speaker
+	./build/speaker -google_speech true
 
 read_ru:
 	go run cmd/speaker/ru.go
@@ -23,6 +23,7 @@ install_depend:
 	playwright install --with-deps
 	#go run github.com/playwright-community/playwright-go/cmd/playwright install --with-deps
 
+.PHONY: build/speaker
 build/speaker:
-	go build -v -o build/android_speaker cmd/speaker/main.go
+	go build -v -o build/speaker cmd/speaker/main.go
 	#CGO_ENABLED=0 go build -ldflags '-w -extldflags "-static"' -a -installsuffix cgo -v -o build/android_speaker cmd/android/main.go
