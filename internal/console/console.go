@@ -243,8 +243,8 @@ func RegexWork(tt string) (out string, err error) {
 	//tt = strings.ReplaceAll(tt, "»", "")
 	//tt = strings.ReplaceAll(tt, "«", "")
 
-	//reg0, err := regexp.Compile(`[^a-zA-Z\p{Han}0-9 .,\r\n]+`)
-	reg0, err := regexp.Compile(`[^a-zA-Z0-9 .,]+`)
+	reg0, err := regexp.Compile(`[^a-zA-Z\p{Han}0-9 .,\r\n]+`)
+	//reg0, err := regexp.Compile(`[^a-zA-Z0-9 .,]+`)
 	if err != nil {
 		return
 	}
