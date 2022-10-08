@@ -10,9 +10,7 @@ import (
 	"github.com/atotto/clipboard"
 	"github.com/eiannone/keyboard"
 
-	//"github.com/exitstop/robotgo"
-	"github.com/exitstop/speaker_alpine/internal/basic"
-	"github.com/exitstop/speaker_alpine/internal/google"
+	"github.com/exitstop/speaker_alpine/internal/intf"
 	hook "github.com/robotn/gohook"
 	"github.com/sirupsen/logrus"
 )
@@ -101,14 +99,11 @@ FOR0:
 	return
 }
 
-func Add(cancel context.CancelFunc, gstore *google.GStore, voice basic.VoiceInterface) {
+func Add(cancel context.CancelFunc, translator intf.Translator) {
 	fmt.Println("--- Please press ctrl + q to stop hook ---")
 	hook.Register(hook.KeyDown, []string{"q", "ctrl"}, func(e hook.Event) {
 		fmt.Println("ctrl-q")
-		chSpeak := google.ChanTranslateMe{
-			Translate: "завершение программы",
-		}
-		voice.ChSpeakMe(chSpeak)
+		translator.OnlyOriginal("завершение программы")
 		time.Sleep(1 * time.Second)
 		cancel()
 	})
@@ -116,81 +111,61 @@ func Add(cancel context.CancelFunc, gstore *google.GStore, voice basic.VoiceInte
 	hook.Register(hook.KeyDown, []string{"p", "ctlr", "alt"}, func(e hook.Event) {
 		fmt.Println("ctrl-alt-p")
 
-		if !voice.GetPause() {
-			chSpeak := google.ChanTranslateMe{
-				Translate: "пауза",
-			}
-			voice.ChSpeakMe(chSpeak)
+		if !translator.CheckPause() {
+			translator.OnlyOriginal("пауза")
 		} else {
-			chSpeak := google.ChanTranslateMe{
-				Translate: "пауза снята",
-			}
-			voice.ChSpeakMe(chSpeak)
+			translator.OnlyOriginal("пауза снята")
 		}
-
-		//time.Sleep(time.Millisecond * 1)
-		voice.SetPause()
+		translator.SetPause()
 	})
 
 	hook.Register(hook.KeyDown, []string{"t", "alt"}, func(e hook.Event) {
 		fmt.Println("alt-t")
 
-		voice.InvertTranslate()
+		//voice.InvertTranslate()
 
-		if voice.TanslateOrNot() {
-			chSpeak := google.ChanTranslateMe{
-				Translate: "без перевода",
-			}
-			voice.ChSpeakMe(chSpeak)
-		} else {
-			chSpeak := google.ChanTranslateMe{
-				Translate: "переводить текст",
-			}
-			voice.ChSpeakMe(chSpeak)
-		}
+		//if voice.TanslateOrNot() {
+		//translator.OnlyOriginal("без перевода")
+		//} else {
+		//translator.OnlyOriginal("переводить текст")
+		//}
 	})
 
 	hook.Register(hook.KeyDown, []string{"-", "alt"}, func(e hook.Event) {
 		fmt.Println("-", "alt")
-		out, speed, err := voice.SpeedSub()
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
+		//out, speed, err := voice.SpeedSub()
+		//if err != nil {
+		//fmt.Println(err)
+		//return
+		//}
 
-		logrus.WithFields(logrus.Fields{
-			"out": out,
-		}).Info("speed-")
+		//logrus.WithFields(logrus.Fields{
+		//"out": out,
+		//}).Info("speed-")
 
-		str := fmt.Sprintf("%.1f", speed)
-		chSpeak := google.ChanTranslateMe{
-			Translate: str,
-		}
-		voice.ChSpeakMe(chSpeak)
+		//str := fmt.Sprintf("%.1f", speed)
+		//translator.OnlyOriginal(str)
 	})
 
 	hook.Register(hook.KeyDown, []string{"+", "alt"}, func(e hook.Event) {
 		fmt.Println("+", "alt")
-		out, speed, err := voice.SpeedAdd()
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
+		//out, speed, err := voice.SpeedAdd()
+		//if err != nil {
+		//fmt.Println(err)
+		//return
+		//}
 
-		logrus.WithFields(logrus.Fields{
-			"out": out,
-		}).Info("speed+")
+		//logrus.WithFields(logrus.Fields{
+		//"out": out,
+		//}).Info("speed+")
 
-		str := fmt.Sprintf("%.1f", speed)
-		chSpeak := google.ChanTranslateMe{
-			Translate: str,
-		}
-		voice.ChSpeakMe(chSpeak)
+		//str := fmt.Sprintf("%.1f", speed)
+		//translator.OnlyOriginal(str)
 	})
 
-	fmt.Println("--- Please press c---")
-	hook.Register(hook.KeyDown, []string{"c", "ctrl"}, func(e hook.Event) {
-		if voice.GetPause() {
+	fmt.Println("--- Please press t---")
+	hook.Register(hook.KeyDown, []string{"t", "alt"}, func(e hook.Event) {
+		if translator.CheckPause() {
 			return
 		}
 
@@ -202,10 +177,7 @@ func Add(cancel context.CancelFunc, gstore *google.GStore, voice basic.VoiceInte
 				"err": err,
 			}).Warn("clipboard")
 
-			chSpeak := google.ChanTranslateMe{
-				Translate: "не скопировалось",
-			}
-			voice.ChSpeakMe(chSpeak)
+			translator.OnlyOriginal("не скопировалось")
 			return
 		}
 
@@ -217,45 +189,65 @@ func Add(cancel context.CancelFunc, gstore *google.GStore, voice basic.VoiceInte
 			}).Warn("regexp")
 			return
 		}
+		translator.OnlyTranslate(processedString)
+	})
 
-		if voice.TanslateOrNot() {
-			processedString, err := RegexWorkRu(text)
-			if err != nil {
-				logrus.WithFields(logrus.Fields{
-					"err": err,
-				}).Warn("regexp")
-				return
-			}
-			chSpeak := google.ChanTranslateMe{
-				Translate: processedString,
-				Orig:      text,
-			}
-			voice.ChSpeakMe(chSpeak)
-		} else {
-			origText, err := RegexWorkRu(text)
-			if err != nil {
-				logrus.WithFields(logrus.Fields{
-					"err": err,
-				}).Warn("regexp")
-				return
-			}
-
-			ch := google.ChanTranslateMe{
-				Translate: processedString,
-				Orig:      origText,
-			}
-
-			select {
-			case gstore.ChanTranslateMe <- ch:
-				logrus.WithFields(logrus.Fields{
-					"SendoToGoole": processedString,
-				}).Warn("google")
-			default:
-				logrus.WithFields(logrus.Fields{
-					"SendoToGoole": processedString,
-				}).Error("Skip text")
-			}
+	fmt.Println("--- Please press c---")
+	hook.Register(hook.KeyDown, []string{"c", "alt"}, func(e hook.Event) {
+		if translator.CheckPause() {
+			return
 		}
+
+		time.Sleep(time.Millisecond * 50)
+		text, err := clipboard.ReadAll()
+
+		if err != nil {
+			logrus.WithFields(logrus.Fields{
+				"err": err,
+			}).Warn("clipboard")
+
+			translator.OnlyOriginal("не скопировалось")
+			return
+		}
+
+		processedString, err := RegexWork(text)
+
+		if err != nil {
+			logrus.WithFields(logrus.Fields{
+				"err": err,
+			}).Warn("regexp")
+			return
+		}
+		translator.OnlyOriginal(processedString)
+	})
+
+	fmt.Println("--- Please press c---")
+	hook.Register(hook.KeyDown, []string{"c", "ctrl"}, func(e hook.Event) {
+		if translator.CheckPause() {
+			return
+		}
+
+		time.Sleep(time.Millisecond * 50)
+		text, err := clipboard.ReadAll()
+
+		if err != nil {
+			logrus.WithFields(logrus.Fields{
+				"err": err,
+			}).Warn("clipboard")
+
+			translator.OnlyOriginal("не скопировалось")
+			return
+		}
+
+		processedString, err := RegexWork(text)
+
+		if err != nil {
+			logrus.WithFields(logrus.Fields{
+				"err": err,
+			}).Warn("regexp")
+			return
+		}
+		translator.TranslateAndOriginal(processedString)
 	})
 
 	hook.Register(hook.KeyDown, []string{"r", "ctrl", "shift"}, func(e hook.Event) {
