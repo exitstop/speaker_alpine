@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/exitstop/speaker_alpine/internal/google"
 	"github.com/exitstop/speaker_alpine/internal/logger"
 	"go.uber.org/zap"
 )
@@ -15,9 +16,9 @@ import (
 type VoiceStore struct {
 	IP          string
 	Port        string
-	SpeakMe     string
+	SpeakMe     google.ChanTranslateMe
 	Client      *http.Client
-	ChanSpeakMe chan string
+	ChanSpeakMe chan google.ChanTranslateMe
 	Terminatate chan bool
 	ChanPause   chan bool
 	Pause       bool
@@ -30,7 +31,7 @@ func Create() (v VoiceStore) {
 		Timeout: 2 * time.Second,
 	}
 
-	v.ChanSpeakMe = make(chan string)
+	v.ChanSpeakMe = make(chan google.ChanTranslateMe)
 	v.Terminatate = make(chan bool)
 	v.ChanPause = make(chan bool)
 
@@ -109,10 +110,10 @@ func (v *VoiceStore) SpeekLoop(ctx context.Context) (err error) {
 			return
 		case v.Pause = <-v.ChanPause:
 			v.Pause = <-v.ChanPause
-			v.SpeakMe = "пауза снята"
+			v.SpeakMe.Translate = "пауза снята"
 		}
 
-		err = v.Say(ctx)
+		err = v.Say(ctx, "ru", "")
 
 		if err != nil {
 			logger.Log.Info("SpeakLoop",
@@ -148,7 +149,7 @@ func (v *VoiceStore) Requset(method, input string) (out string, err error) {
 	return
 }
 
-func (v *VoiceStore) Say(ctx context.Context) (err error) {
+func (v *VoiceStore) Say(ctx context.Context, lang, text string) (err error) {
 	str := fmt.Sprintf(`{"Text": "%s"}`, v.SpeakMe)
 	out, err := v.Requset("play_on_android", str)
 
@@ -159,7 +160,7 @@ func (v *VoiceStore) Say(ctx context.Context) (err error) {
 	return
 }
 
-func (v *VoiceStore) ChSpeakMe(in string) {
+func (v *VoiceStore) ChSpeakMe(in google.ChanTranslateMe) {
 	v.ChanSpeakMe <- in
 	return
 }

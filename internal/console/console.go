@@ -105,7 +105,10 @@ func Add(cancel context.CancelFunc, gstore *google.GStore, voice basic.VoiceInte
 	fmt.Println("--- Please press ctrl + q to stop hook ---")
 	hook.Register(hook.KeyDown, []string{"q", "ctrl"}, func(e hook.Event) {
 		fmt.Println("ctrl-q")
-		voice.ChSpeakMe("завершение программы")
+		chSpeak := google.ChanTranslateMe{
+			Translate: "завершение программы",
+		}
+		voice.ChSpeakMe(chSpeak)
 		time.Sleep(1 * time.Second)
 		cancel()
 	})
@@ -114,9 +117,15 @@ func Add(cancel context.CancelFunc, gstore *google.GStore, voice basic.VoiceInte
 		fmt.Println("ctrl-alt-p")
 
 		if !voice.GetPause() {
-			voice.ChSpeakMe("пауза")
+			chSpeak := google.ChanTranslateMe{
+				Translate: "пауза",
+			}
+			voice.ChSpeakMe(chSpeak)
 		} else {
-			voice.ChSpeakMe("пауза снята")
+			chSpeak := google.ChanTranslateMe{
+				Translate: "пауза снята",
+			}
+			voice.ChSpeakMe(chSpeak)
 		}
 
 		//time.Sleep(time.Millisecond * 1)
@@ -129,9 +138,15 @@ func Add(cancel context.CancelFunc, gstore *google.GStore, voice basic.VoiceInte
 		voice.InvertTranslate()
 
 		if voice.TanslateOrNot() {
-			voice.ChSpeakMe("без перевода")
+			chSpeak := google.ChanTranslateMe{
+				Translate: "без перевода",
+			}
+			voice.ChSpeakMe(chSpeak)
 		} else {
-			voice.ChSpeakMe("переводить текст")
+			chSpeak := google.ChanTranslateMe{
+				Translate: "переводить текст",
+			}
+			voice.ChSpeakMe(chSpeak)
 		}
 	})
 
@@ -148,7 +163,10 @@ func Add(cancel context.CancelFunc, gstore *google.GStore, voice basic.VoiceInte
 		}).Info("speed-")
 
 		str := fmt.Sprintf("%.1f", speed)
-		voice.ChSpeakMe(str)
+		chSpeak := google.ChanTranslateMe{
+			Translate: str,
+		}
+		voice.ChSpeakMe(chSpeak)
 	})
 
 	hook.Register(hook.KeyDown, []string{"+", "alt"}, func(e hook.Event) {
@@ -164,7 +182,10 @@ func Add(cancel context.CancelFunc, gstore *google.GStore, voice basic.VoiceInte
 		}).Info("speed+")
 
 		str := fmt.Sprintf("%.1f", speed)
-		voice.ChSpeakMe(str)
+		chSpeak := google.ChanTranslateMe{
+			Translate: str,
+		}
+		voice.ChSpeakMe(chSpeak)
 	})
 
 	fmt.Println("--- Please press c---")
@@ -181,7 +202,10 @@ func Add(cancel context.CancelFunc, gstore *google.GStore, voice basic.VoiceInte
 				"err": err,
 			}).Warn("clipboard")
 
-			voice.ChSpeakMe("не скопировалось")
+			chSpeak := google.ChanTranslateMe{
+				Translate: "не скопировалось",
+			}
+			voice.ChSpeakMe(chSpeak)
 			return
 		}
 
@@ -202,11 +226,27 @@ func Add(cancel context.CancelFunc, gstore *google.GStore, voice basic.VoiceInte
 				}).Warn("regexp")
 				return
 			}
-			voice.ChSpeakMe(processedString)
+			chSpeak := google.ChanTranslateMe{
+				Translate: processedString,
+				Orig:      text,
+			}
+			voice.ChSpeakMe(chSpeak)
 		} else {
+			origText, err := RegexWorkRu(text)
+			if err != nil {
+				logrus.WithFields(logrus.Fields{
+					"err": err,
+				}).Warn("regexp")
+				return
+			}
+
+			ch := google.ChanTranslateMe{
+				Translate: processedString,
+				Orig:      origText,
+			}
 
 			select {
-			case gstore.ChanTranslateMe <- processedString:
+			case gstore.ChanTranslateMe <- ch:
 				logrus.WithFields(logrus.Fields{
 					"SendoToGoole": processedString,
 				}).Warn("google")

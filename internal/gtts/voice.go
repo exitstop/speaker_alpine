@@ -9,23 +9,25 @@ import (
 	"os/exec"
 	"time"
 
+	"github.com/exitstop/speaker_alpine/internal/google"
 	"github.com/exitstop/speaker_alpine/internal/logger"
 	"go.uber.org/zap"
 )
 
 type VoiceStore struct {
-	IP          string
-	Port        string
-	SpeakMe     string
-	Client      *http.Client
-	ChanSpeakMe chan string
-	Terminatate chan bool
-	ChanPause   chan bool
-	Pause       bool
-	SpeechSpeed float64
-	NoTranslate bool // не переводить текст
-	c1          *exec.Cmd
-	c2          *exec.Cmd
+	IP              string
+	Port            string
+	SpeakMe         google.ChanTranslateMe
+	Client          *http.Client
+	ChanSpeakMe     chan google.ChanTranslateMe
+	Terminatate     chan bool
+	ChanPause       chan bool
+	Pause           bool
+	SpeechSpeed     float64
+	NoTranslate     bool // не переводить текст
+	c1              *exec.Cmd
+	c2              *exec.Cmd
+	DoubleTranslate bool // двойной перевод
 }
 
 func Create() (v VoiceStore) {
@@ -33,7 +35,7 @@ func Create() (v VoiceStore) {
 		Timeout: 2 * time.Second,
 	}
 
-	v.ChanSpeakMe = make(chan string)
+	v.ChanSpeakMe = make(chan google.ChanTranslateMe)
 	v.Terminatate = make(chan bool)
 	v.ChanPause = make(chan bool)
 
@@ -48,8 +50,8 @@ func (v *VoiceStore) Start(ctx context.Context) (err error) {
 	)
 	logger.Log.Sync()
 
-	v.SpeakMe = "инициализация успешна"
-	v.Say(ctx)
+	v.SpeakMe.Translate = "инициализация успешна"
+	v.Say(ctx, "ru", v.SpeakMe.Translate)
 	v.SpeekLoop(ctx)
 
 	return
@@ -77,7 +79,7 @@ func (v *VoiceStore) SpeekLoop(ctx context.Context) (err error) {
 			return
 		case v.Pause = <-v.ChanPause:
 			v.Pause = <-v.ChanPause
-			v.SpeakMe = "пауза снята"
+			v.SpeakMe.Translate = "пауза снята"
 		}
 
 		cancel()
@@ -85,12 +87,13 @@ func (v *VoiceStore) SpeekLoop(ctx context.Context) (err error) {
 		ctxSpeak, cancel = context.WithCancel(ctx)
 
 		logger.Log.Info("Say",
-			zap.String("text", v.SpeakMe),
+			zap.String("Translate", v.SpeakMe.Translate),
+			zap.String("Orig", v.SpeakMe.Orig),
 		)
 		logger.Log.Sync()
 
 		go func() {
-			err := v.Say(ctxSpeak)
+			err := v.Say(ctxSpeak, "ru", v.SpeakMe.Translate)
 
 			if err != nil {
 				logger.Log.Info("Say",
@@ -98,6 +101,17 @@ func (v *VoiceStore) SpeekLoop(ctx context.Context) (err error) {
 				)
 				logger.Log.Sync()
 				return
+			}
+			if v.SpeakMe.Orig != "" && v.DoubleTranslate {
+				err = v.Say2(ctxSpeak, "en", v.SpeakMe.Orig, 1)
+
+				if err != nil {
+					logger.Log.Info("Say",
+						zap.String("error", err.Error()),
+					)
+					logger.Log.Sync()
+					return
+				}
 			}
 		}()
 
@@ -127,8 +141,8 @@ func (v *VoiceStore) Requset(method, input string) (out string, err error) {
 	return
 }
 
-func (v *VoiceStore) Say(ctx context.Context) (err error) {
-	strCommand := fmt.Sprintf(`gtts-cli -l ru "%s"`, v.SpeakMe)
+func (v *VoiceStore) Say(ctx context.Context, lang, text string) (err error) {
+	strCommand := fmt.Sprintf(`gtts-cli -l %s "%s"`, lang, text)
 	v.c1 = exec.CommandContext(ctx, "/bin/bash", "-c", strCommand)
 	stdout1, err := v.c1.StdoutPipe()
 	err = v.c1.Start()
@@ -156,7 +170,36 @@ func (v *VoiceStore) Say(ctx context.Context) (err error) {
 	return
 }
 
-func (v *VoiceStore) ChSpeakMe(in string) {
+func (v *VoiceStore) Say2(ctx context.Context, lang, text string, speed int) (err error) {
+	strCommand := fmt.Sprintf(`gtts-cli -l %s "%s"`, lang, text)
+	v.c1 = exec.CommandContext(ctx, "/bin/bash", "-c", strCommand)
+	stdout1, err := v.c1.StdoutPipe()
+	err = v.c1.Start()
+	if err != nil {
+		return
+	}
+
+	strCommand2 := fmt.Sprintf(`mpg123 -d %d --pitch 0 -`, speed)
+	v.c2 = exec.CommandContext(ctx, "/bin/bash", "-c", strCommand2)
+	v.c2.Stdin = stdout1
+	err = v.c2.Start()
+
+	if err != nil {
+		return
+	}
+	err = v.c1.Wait()
+	if err != nil {
+		return
+	}
+	err = v.c2.Wait()
+	if err != nil {
+		return
+	}
+
+	return
+}
+
+func (v *VoiceStore) ChSpeakMe(in google.ChanTranslateMe) {
 	v.ChanSpeakMe <- in
 	return
 }

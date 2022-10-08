@@ -45,6 +45,7 @@ func main() {
 	if nGoogleTts {
 		// google speech
 		v_ := gtts.Create()
+		v_.DoubleTranslate = true
 		gstore.Terminatate = v_.Terminatate
 		gstore.SendTranslateToSpeak = v_.ChanSpeakMe
 		v = &v_

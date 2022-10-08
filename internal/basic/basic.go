@@ -1,6 +1,10 @@
 package basic
 
-import "context"
+import (
+	"context"
+
+	"github.com/exitstop/speaker_alpine/internal/google"
+)
 
 type VoiceInterface interface {
 	Start(ctx context.Context) error
@@ -9,8 +13,8 @@ type VoiceInterface interface {
 	SpeedAdd() (string, float64, error)
 	SpeekLoop(ctx context.Context) error
 	Requset(string, string) (string, error)
-	Say(ctx context.Context) error
-	ChSpeakMe(string)
+	Say(ctx context.Context, lang, text string) error
+	ChSpeakMe(google.ChanTranslateMe)
 	Exit()
 	GetPause() bool
 	SetPause()

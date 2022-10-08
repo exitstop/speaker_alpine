@@ -12,7 +12,7 @@ import (
 func Create() (gstore GStore) {
 	gstore.TimeoutWaitTranslate = 50 * time.Millisecond
 	gstore.CountLoopWaitTranslate = 50
-	gstore.ChanTranslateMe = make(chan string)
+	gstore.ChanTranslateMe = make(chan ChanTranslateMe)
 	gstore.Drop = make(chan struct{})
 	gstore.Terminatate = make(chan bool)
 
@@ -90,7 +90,7 @@ func (s *GStore) LoopTransalate(ctx context.Context) (err error) {
 		}
 
 		if s.LastTranslete == s.ToTranslete {
-			if s.TranslatedText != "" {
+			if s.TranslatedText.Translate != "" {
 				s.SendTranslateToSpeak <- s.TranslatedText
 				fmt.Println("REPEATE LAST TRANSLATE")
 				continue
@@ -105,14 +105,19 @@ func (s *GStore) LoopTransalate(ctx context.Context) (err error) {
 			return
 		}
 
-		s.TranslatedText, err = s.WaitTextTranslate()
+		s.TranslatedText.Orig = s.ToTranslete.Translate
+		s.TranslatedText.Translate, err = s.WaitTextTranslate()
 
 		if err != nil {
 			err = fmt.Errorf("не удалось перевести: %s", err.Error())
 
 			//s.SendTranslateToSpeak <- "не удалось перевести"
 			//strErr := fmt.Sprintf("не удалось перевести: %s", err.Error())
-			s.SendTranslateToSpeak <- err.Error()
+			chText := ChanTranslateMe{
+				Translate: err.Error(),
+			}
+
+			s.SendTranslateToSpeak <- chText
 			logrus.WithFields(logrus.Fields{
 				"err": err,
 			}).Error("Translate")
@@ -136,7 +141,7 @@ func (s *GStore) WaitTextTranslate() (parseText string, err error) {
 			continue
 		}
 		fmt.Println("---------------------------------------\n" + text + "\n---------------------------------------\n")
-		parseText, err = ParseGoogle9(s.ToTranslete, text)
+		parseText, err = ParseGoogle9(s.ToTranslete.Translate, text)
 		if err != nil {
 			err = fmt.Errorf("перевод не распарсился")
 			return parseText, err
@@ -185,7 +190,7 @@ func (s *GStore) SetEventGoogle() (err error) {
 	return
 }
 
-func (s *GStore) SetText(text string) (err error) {
+func (s *GStore) SetText(text ChanTranslateMe) (err error) {
 	jsInput := fmt.Sprintf(JS_SET_TYPE, text)
 
 	_, err = s.Page.Evaluate(jsInput)
