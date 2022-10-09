@@ -103,7 +103,7 @@ func Add(cancel context.CancelFunc, translator intf.Translator) {
 	fmt.Println("--- Please press ctrl + q to stop hook ---")
 	hook.Register(hook.KeyDown, []string{"q", "ctrl"}, func(e hook.Event) {
 		fmt.Println("ctrl-q")
-		translator.OnlyOriginal("завершение программы")
+		translator.OnlyOriginalRu("завершение программы")
 		time.Sleep(1 * time.Second)
 		cancel()
 	})
@@ -112,9 +112,9 @@ func Add(cancel context.CancelFunc, translator intf.Translator) {
 		fmt.Println("ctrl-alt-p")
 
 		if !translator.CheckPause() {
-			translator.OnlyOriginal("пауза")
+			translator.OnlyOriginalRu("пауза")
 		} else {
-			translator.OnlyOriginal("пауза снята")
+			translator.OnlyOriginalRu("пауза снята")
 		}
 		translator.SetPause()
 	})
@@ -125,9 +125,9 @@ func Add(cancel context.CancelFunc, translator intf.Translator) {
 		//voice.InvertTranslate()
 
 		//if voice.TanslateOrNot() {
-		//translator.OnlyOriginal("без перевода")
+		//translator.OnlyOriginalRu("без перевода")
 		//} else {
-		//translator.OnlyOriginal("переводить текст")
+		//translator.OnlyOriginalRu("переводить текст")
 		//}
 	})
 
@@ -144,7 +144,7 @@ func Add(cancel context.CancelFunc, translator intf.Translator) {
 		//}).Info("speed-")
 
 		//str := fmt.Sprintf("%.1f", speed)
-		//translator.OnlyOriginal(str)
+		//translator.OnlyOriginalRu(str)
 	})
 
 	hook.Register(hook.KeyDown, []string{"+", "alt"}, func(e hook.Event) {
@@ -160,7 +160,7 @@ func Add(cancel context.CancelFunc, translator intf.Translator) {
 		//}).Info("speed+")
 
 		//str := fmt.Sprintf("%.1f", speed)
-		//translator.OnlyOriginal(str)
+		//translator.OnlyOriginalRu(str)
 	})
 
 	fmt.Println("--- Please press t---")
@@ -177,7 +177,7 @@ func Add(cancel context.CancelFunc, translator intf.Translator) {
 				"err": err,
 			}).Warn("clipboard")
 
-			translator.OnlyOriginal("не скопировалось")
+			translator.OnlyOriginalRu("не скопировалось")
 			return
 		}
 
@@ -206,7 +206,7 @@ func Add(cancel context.CancelFunc, translator intf.Translator) {
 				"err": err,
 			}).Warn("clipboard")
 
-			translator.OnlyOriginal("не скопировалось")
+			translator.OnlyOriginalRu("не скопировалось")
 			return
 		}
 
@@ -235,7 +235,7 @@ func Add(cancel context.CancelFunc, translator intf.Translator) {
 				"err": err,
 			}).Warn("clipboard")
 
-			translator.OnlyOriginal("не скопировалось")
+			translator.OnlyOriginalRu("не скопировалось")
 			return
 		}
 
