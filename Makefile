@@ -6,17 +6,8 @@
 	##GOOS=windows GOARCH=amd64 CGO_ENABLED=1 $(GOBUILD) -v -o build/speaker.exe cmd/voice/main.go
 	#./scripts/cross.sh
 
-android:
-	go run cmd/android/main.go -ip 192.168.0.177
-
-android_work:
-	go run cmd/speaker/main.go -ip 192.168.88.20
-
-google_speech: build/speaker
-	./build/speaker -google_speech true
-
-read_ru:
-	go run cmd/speaker/ru.go
+run: build/speaker
+	./build/speaker
 
 install_depend:
 	go install github.com/playwright-community/playwright-go/cmd/playwright

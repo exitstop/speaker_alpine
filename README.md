@@ -9,7 +9,7 @@
 
 ```
 sudo -H pip3 install gTTS
-sudo apt install -y mpg123 \
+sudo apt install -y mpg123 translate-shell \
         xsel xclip \
         xcb libxcb-xkb-dev x11-xkb-utils libx11-xcb-dev libxkbcommon-x11-dev libxkbcommon-dev
 

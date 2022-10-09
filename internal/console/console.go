@@ -103,7 +103,8 @@ func Add(cancel context.CancelFunc, translator intf.Translator) {
 	fmt.Println("--- Please press ctrl + q to stop hook ---")
 	hook.Register(hook.KeyDown, []string{"q", "ctrl"}, func(e hook.Event) {
 		fmt.Println("ctrl-q")
-		translator.OnlyOriginalRu("завершение программы")
+		translator.OnlyOriginalRu()
+		translator.Go("завершение программы")
 		time.Sleep(1 * time.Second)
 		cancel()
 	})
@@ -112,16 +113,17 @@ func Add(cancel context.CancelFunc, translator intf.Translator) {
 		fmt.Println("ctrl-alt-p")
 
 		if !translator.CheckPause() {
-			translator.OnlyOriginalRu("пауза")
+			translator.OnlyOriginalRu()
+			translator.Go("пауза")
 		} else {
-			translator.OnlyOriginalRu("пауза снята")
+			translator.OnlyOriginalRu()
+			translator.Go("пауза снята")
 		}
 		translator.SetPause()
 	})
 
 	hook.Register(hook.KeyDown, []string{"t", "alt"}, func(e hook.Event) {
 		fmt.Println("alt-t")
-
 		//voice.InvertTranslate()
 
 		//if voice.TanslateOrNot() {
@@ -163,6 +165,35 @@ func Add(cancel context.CancelFunc, translator intf.Translator) {
 		//translator.OnlyOriginalRu(str)
 	})
 
+	hook.Register(hook.KeyDown, []string{"f", "alt"}, func(e hook.Event) {
+		if translator.CheckPause() {
+			return
+		}
+		time.Sleep(time.Millisecond * 50)
+		text, err := clipboard.ReadAll()
+
+		if err != nil {
+			logrus.WithFields(logrus.Fields{
+				"err": err,
+			}).Warn("clipboard")
+
+			translator.OnlyOriginalRu()
+			translator.Go("не скопировалось")
+			return
+		}
+
+		processedString, err := RegexWork(text)
+
+		if err != nil {
+			logrus.WithFields(logrus.Fields{
+				"err": err,
+			}).Warn("regexp")
+			return
+		}
+		translator.TranslateAndOriginal()
+		translator.Go(processedString)
+	})
+
 	fmt.Println("--- Please press t---")
 	hook.Register(hook.KeyDown, []string{"t", "alt"}, func(e hook.Event) {
 		if translator.CheckPause() {
@@ -177,7 +208,8 @@ func Add(cancel context.CancelFunc, translator intf.Translator) {
 				"err": err,
 			}).Warn("clipboard")
 
-			translator.OnlyOriginalRu("не скопировалось")
+			translator.OnlyOriginalRu()
+			translator.Go("не скопировалось")
 			return
 		}
 
@@ -189,7 +221,8 @@ func Add(cancel context.CancelFunc, translator intf.Translator) {
 			}).Warn("regexp")
 			return
 		}
-		translator.OnlyTranslate(processedString)
+		translator.OnlyTranslate()
+		translator.Go(processedString)
 	})
 
 	fmt.Println("--- Please press c---")
@@ -206,7 +239,8 @@ func Add(cancel context.CancelFunc, translator intf.Translator) {
 				"err": err,
 			}).Warn("clipboard")
 
-			translator.OnlyOriginalRu("не скопировалось")
+			translator.OnlyOriginalRu()
+			translator.Go("не скопировалось")
 			return
 		}
 
@@ -218,7 +252,8 @@ func Add(cancel context.CancelFunc, translator intf.Translator) {
 			}).Warn("regexp")
 			return
 		}
-		translator.OnlyOriginal(processedString)
+		translator.OnlyOriginal()
+		translator.Go(processedString)
 	})
 
 	fmt.Println("--- Please press c---")
@@ -235,7 +270,8 @@ func Add(cancel context.CancelFunc, translator intf.Translator) {
 				"err": err,
 			}).Warn("clipboard")
 
-			translator.OnlyOriginalRu("не скопировалось")
+			translator.OnlyOriginalRu()
+			translator.Go("не скопировалось")
 			return
 		}
 
@@ -247,7 +283,7 @@ func Add(cancel context.CancelFunc, translator intf.Translator) {
 			}).Warn("regexp")
 			return
 		}
-		translator.TranslateAndOriginal(processedString)
+		translator.Go(processedString)
 	})
 
 	hook.Register(hook.KeyDown, []string{"r", "ctrl", "shift"}, func(e hook.Event) {
