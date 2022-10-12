@@ -6,17 +6,13 @@
 # Затем
 # Разрешаем мониторить эти папки
 !*internal
-!*internal/google
-!*internal/google/data_test
-!*internal/gtts
-!*internal/voice
-!*internal/console
+!*internal/intf
 !*internal/logger
-!*internal/basic
-!*docker
+!*internal/console
+!*internal/translateshell
 !*cmd
 !*cmd/speaker
-!*cmd/gtts
+!*docker
 
 # И в этих папках брать только эти форматы
 !*.ini

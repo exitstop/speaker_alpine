@@ -100,6 +100,8 @@ FOR0:
 }
 
 func Add(cancel context.CancelFunc, translator intf.Translator) {
+	translator.OnlyOriginal()
+
 	fmt.Println("--- Please press ctrl + q to stop hook ---")
 	hook.Register(hook.KeyDown, []string{"q", "ctrl"}, func(e hook.Event) {
 		fmt.Println("ctrl-q")
