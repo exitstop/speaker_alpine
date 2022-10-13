@@ -124,48 +124,48 @@ func Add(cancel context.CancelFunc, translator intf.Translator) {
 		translator.SetPause()
 	})
 
-	hook.Register(hook.KeyDown, []string{"t", "alt"}, func(e hook.Event) {
-		fmt.Println("alt-t")
-		//voice.InvertTranslate()
+	//hook.Register(hook.KeyDown, []string{"t", "alt"}, func(e hook.Event) {
+	//fmt.Println("alt-t")
+	////voice.InvertTranslate()
 
-		//if voice.TanslateOrNot() {
-		//translator.OnlyOriginalRu("без перевода")
-		//} else {
-		//translator.OnlyOriginalRu("переводить текст")
-		//}
-	})
+	////if voice.TanslateOrNot() {
+	////translator.OnlyOriginalRu("без перевода")
+	////} else {
+	////translator.OnlyOriginalRu("переводить текст")
+	////}
+	//})
 
-	hook.Register(hook.KeyDown, []string{"-", "alt"}, func(e hook.Event) {
-		fmt.Println("-", "alt")
-		//out, speed, err := voice.SpeedSub()
-		//if err != nil {
-		//fmt.Println(err)
-		//return
-		//}
+	//hook.Register(hook.KeyDown, []string{"-", "alt"}, func(e hook.Event) {
+	//fmt.Println("-", "alt")
+	////out, speed, err := voice.SpeedSub()
+	////if err != nil {
+	////fmt.Println(err)
+	////return
+	////}
 
-		//logrus.WithFields(logrus.Fields{
-		//"out": out,
-		//}).Info("speed-")
+	////logrus.WithFields(logrus.Fields{
+	////"out": out,
+	////}).Info("speed-")
 
-		//str := fmt.Sprintf("%.1f", speed)
-		//translator.OnlyOriginalRu(str)
-	})
+	////str := fmt.Sprintf("%.1f", speed)
+	////translator.OnlyOriginalRu(str)
+	//})
 
-	hook.Register(hook.KeyDown, []string{"+", "alt"}, func(e hook.Event) {
-		fmt.Println("+", "alt")
-		//out, speed, err := voice.SpeedAdd()
-		//if err != nil {
-		//fmt.Println(err)
-		//return
-		//}
+	//hook.Register(hook.KeyDown, []string{"+", "alt"}, func(e hook.Event) {
+	//fmt.Println("+", "alt")
+	////out, speed, err := voice.SpeedAdd()
+	////if err != nil {
+	////fmt.Println(err)
+	////return
+	////}
 
-		//logrus.WithFields(logrus.Fields{
-		//"out": out,
-		//}).Info("speed+")
+	////logrus.WithFields(logrus.Fields{
+	////"out": out,
+	////}).Info("speed+")
 
-		//str := fmt.Sprintf("%.1f", speed)
-		//translator.OnlyOriginalRu(str)
-	})
+	////str := fmt.Sprintf("%.1f", speed)
+	////translator.OnlyOriginalRu(str)
+	//})
 
 	hook.Register(hook.KeyDown, []string{"f", "alt"}, func(e hook.Event) {
 		if translator.CheckPause() {
@@ -196,8 +196,12 @@ func Add(cancel context.CancelFunc, translator intf.Translator) {
 		translator.Go(processedString)
 	})
 
+	//hook.Register(hook.KeyDown, []string{"meta", "t"}, func(e hook.Event) {
+	//fmt.Println("key down", e.String(), e.Keychar)
+	//})
+
 	fmt.Println("--- Please press t---")
-	hook.Register(hook.KeyDown, []string{"t", "alt"}, func(e hook.Event) {
+	hook.Register(hook.KeyDown, []string{"z", "ctrl"}, func(e hook.Event) {
 		if translator.CheckPause() {
 			return
 		}
@@ -227,36 +231,36 @@ func Add(cancel context.CancelFunc, translator intf.Translator) {
 		translator.Go(processedString)
 	})
 
-	fmt.Println("--- Please press c---")
-	hook.Register(hook.KeyDown, []string{"c", "alt"}, func(e hook.Event) {
-		if translator.CheckPause() {
-			return
-		}
+	//fmt.Println("--- Please press c---")
+	//hook.Register(hook.KeyDown, []string{"z", "ctrl"}, func(e hook.Event) {
+	//if translator.CheckPause() {
+	//return
+	//}
 
-		time.Sleep(time.Millisecond * 50)
-		text, err := clipboard.ReadAll()
+	//time.Sleep(time.Millisecond * 50)
+	//text, err := clipboard.ReadAll()
 
-		if err != nil {
-			logrus.WithFields(logrus.Fields{
-				"err": err,
-			}).Warn("clipboard")
+	//if err != nil {
+	//logrus.WithFields(logrus.Fields{
+	//"err": err,
+	//}).Warn("clipboard")
 
-			translator.OnlyOriginalRu()
-			translator.Go("не скопировалось")
-			return
-		}
+	//translator.OnlyOriginalRu()
+	//translator.Go("не скопировалось")
+	//return
+	//}
 
-		processedString, err := RegexWork(text)
+	//processedString, err := RegexWork(text)
 
-		if err != nil {
-			logrus.WithFields(logrus.Fields{
-				"err": err,
-			}).Warn("regexp")
-			return
-		}
-		translator.OnlyOriginal()
-		translator.Go(processedString)
-	})
+	//if err != nil {
+	//logrus.WithFields(logrus.Fields{
+	//"err": err,
+	//}).Warn("regexp")
+	//return
+	//}
+	//translator.OnlyOriginal()
+	//translator.Go(processedString)
+	//})
 
 	fmt.Println("--- Please press c---")
 	hook.Register(hook.KeyDown, []string{"c", "ctrl"}, func(e hook.Event) {
@@ -285,6 +289,7 @@ func Add(cancel context.CancelFunc, translator intf.Translator) {
 			}).Warn("regexp")
 			return
 		}
+		translator.OnlyOriginal()
 		translator.Go(processedString)
 	})
 
