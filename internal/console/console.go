@@ -227,7 +227,8 @@ func Add(cancel context.CancelFunc, translator intf.Translator) {
 			}).Warn("regexp")
 			return
 		}
-		translator.OnlyTranslate()
+		translator.OnlyOriginal()
+		// translator.OnlyTranslate()
 		translator.Go(processedString)
 	})
 
@@ -289,7 +290,8 @@ func Add(cancel context.CancelFunc, translator intf.Translator) {
 			}).Warn("regexp")
 			return
 		}
-		translator.OnlyOriginal()
+		translator.OnlyTranslate()
+		//translator.OnlyOriginal()
 		translator.Go(processedString)
 	})
 
@@ -314,7 +316,8 @@ func Event() {
 }
 
 func RegexWork(tt string) (out string, err error) {
-	tt = strings.ReplaceAll(tt, "\n", ".")
+	tt = strings.ReplaceAll(tt, "\n", "")
+	tt = strings.ReplaceAll(tt, "\r", "")
 	//tt = strings.ReplaceAll(tt, "»", "")
 	//tt = strings.ReplaceAll(tt, "«", "")
 

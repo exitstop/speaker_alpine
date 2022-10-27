@@ -52,14 +52,14 @@ func (s *Store) Run() {
 
 			switch s.typeOperation {
 			case operationOnlyTranslate:
-				replay(s.ctxSpeak, "ru", s.translate, 2)
+				replay(s.ctxSpeak, "ru", s.translate, 5, 2)
 			case operationOnlyOriginalRu:
-				replay(s.ctxSpeak, "ru", s.original, 2)
+				replay(s.ctxSpeak, "ru", s.original, 5, 2)
 			case operationOnlyOriginal:
-				replay(s.ctxSpeak, "en", s.original, 2)
+				replay(s.ctxSpeak, "en", s.original, 2, 1)
 			case operationTranslateAndOriginal:
-				replay(s.ctxSpeak, "ru", s.translate, 2)
-				replay(s.ctxSpeak, "en", s.original, 2)
+				replay(s.ctxSpeak, "ru", s.translate, 5, 2)
+				replay(s.ctxSpeak, "en", s.original, 5, 2)
 				//speak(s.ctxSpeak, text, `trans -b -t ru -no-translate -sp "%s"`)
 				//default:
 				//s.translate = speak(s.ctxSpeak, text, `trans -b -t ru -p "%s"`)
@@ -112,7 +112,7 @@ func speak(ctx context.Context, text, command string) string {
 	return string(out)
 }
 
-func replay(ctx context.Context, lang, text string, speed int) (err error) {
+func replay(ctx context.Context, lang, text string, speed, half int) (err error) {
 	strCommand := fmt.Sprintf(`gtts-cli -l %s "%s"`, lang, text)
 	c1 := exec.CommandContext(ctx, "/bin/bash", "-c", strCommand)
 	stdout1, err := c1.StdoutPipe()
@@ -121,7 +121,7 @@ func replay(ctx context.Context, lang, text string, speed int) (err error) {
 		return
 	}
 
-	strCommand2 := fmt.Sprintf(`mpg123 -d %d --pitch 0 -`, speed)
+	strCommand2 := fmt.Sprintf(`mpg123 -d %d -h %d --pitch 0 -`, speed, half)
 	c2 := exec.CommandContext(ctx, "/bin/bash", "-c", strCommand2)
 	c2.Stdin = stdout1
 	err = c2.Start()
