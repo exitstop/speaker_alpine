@@ -6,12 +6,17 @@
 	##GOOS=windows GOARCH=amd64 CGO_ENABLED=1 $(GOBUILD) -v -o build/speaker.exe cmd/voice/main.go
 	#./scripts/cross.sh
 
+# dependencis
+# https://github.com/pndurette/gTTS
+# https://github.com/soimort/translate-shell
+
 run: build/speaker
 	./build/speaker
 
 install_depend:
 	go install github.com/playwright-community/playwright-go/cmd/playwright
 	playwright install --with-deps
+	sudo -H pip3 install gTTS
 	#go run github.com/playwright-community/playwright-go/cmd/playwright install --with-deps
 
 .PHONY: build/speaker

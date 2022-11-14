@@ -284,6 +284,8 @@ func Add(cancel context.CancelFunc, translator intf.Translator) {
 
 		processedString, err := RegexWork(text)
 
+		fmt.Println(processedString)
+
 		if err != nil {
 			logrus.WithFields(logrus.Fields{
 				"err": err,

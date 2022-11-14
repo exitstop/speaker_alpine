@@ -3,6 +3,7 @@ package translateshell
 import (
 	"context"
 	"fmt"
+	"os"
 	"os/exec"
 	"strings"
 	"time"
@@ -108,13 +109,16 @@ func (s *Store) SetPause() {
 
 func speak(ctx context.Context, text, command string) string {
 	cmd := exec.CommandContext(ctx, "sh", "-c", fmt.Sprintf(command, text))
+	cmd.Stderr = os.Stderr
 	out, _ := cmd.Output()
 	return string(out)
 }
 
 func replay(ctx context.Context, lang, text string, speed, half int) (err error) {
 	strCommand := fmt.Sprintf(`gtts-cli -l %s "%s"`, lang, text)
+	fmt.Println(strCommand)
 	c1 := exec.CommandContext(ctx, "/bin/bash", "-c", strCommand)
+	c1.Stderr = os.Stderr
 	stdout1, err := c1.StdoutPipe()
 	err = c1.Start()
 	if err != nil {
@@ -124,8 +128,8 @@ func replay(ctx context.Context, lang, text string, speed, half int) (err error)
 	strCommand2 := fmt.Sprintf(`mpg123 -d %d -h %d --pitch 0 -`, speed, half)
 	c2 := exec.CommandContext(ctx, "/bin/bash", "-c", strCommand2)
 	c2.Stdin = stdout1
+	c2.Stderr = os.Stderr
 	err = c2.Start()
-
 	if err != nil {
 		return
 	}
