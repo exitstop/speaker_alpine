@@ -166,34 +166,45 @@ func Add(cancel context.CancelFunc, translator intf.Translator) {
 	////str := fmt.Sprintf("%.1f", speed)
 	////translator.OnlyOriginalRu(str)
 	//})
+	var readRU = false
 
 	hook.Register(hook.KeyDown, []string{"f", "alt"}, func(e hook.Event) {
 		if translator.CheckPause() {
 			return
 		}
-		time.Sleep(time.Millisecond * 50)
-		text, err := clipboard.ReadAll()
+		readRU = !readRU
 
-		if err != nil {
-			logrus.WithFields(logrus.Fields{
-				"err": err,
-			}).Warn("clipboard")
-
+		if readRU {
 			translator.OnlyOriginalRu()
-			translator.Go("не скопировалось")
-			return
+			translator.Go("режим чтения на русском")
+		} else {
+			translator.OnlyOriginalRu()
+			translator.Go("включить переводчик")
 		}
+		// time.Sleep(time.Millisecond * 50)
+		// text, err := clipboard.ReadAll()
+		//
+		// if err != nil {
+		// 	logrus.WithFields(logrus.Fields{
+		// 		"err": err,
+		// 	}).Warn("clipboard")
+		//
+		// 	translator.OnlyOriginalRu()
+		// 	translator.Go("не скопировалось")
+		// 	return
+		// }
 
-		processedString, err := RegexWork(text)
+		// processedString, err := RegexWork(text)
 
-		if err != nil {
-			logrus.WithFields(logrus.Fields{
-				"err": err,
-			}).Warn("regexp")
-			return
-		}
-		translator.TranslateAndOriginal()
-		translator.Go(processedString)
+		// if err != nil {
+		// 	logrus.WithFields(logrus.Fields{
+		// 		"err": err,
+		// 	}).Warn("regexp")
+		// 	return
+		// }
+		// translator.TranslateAndOriginal()
+		// translator.Go(processedString)
+
 	})
 
 	//hook.Register(hook.KeyDown, []string{"meta", "t"}, func(e hook.Event) {
@@ -292,9 +303,14 @@ func Add(cancel context.CancelFunc, translator intf.Translator) {
 			}).Warn("regexp")
 			return
 		}
-		translator.OnlyTranslate()
-		//translator.OnlyOriginal()
-		translator.Go(processedString)
+		if readRU {
+			translator.OnlyOriginalRu()
+			translator.Go(text)
+		} else {
+			// translator.OnlyOriginal()
+			translator.OnlyTranslate()
+			translator.Go(processedString)
+		}
 	})
 
 	hook.Register(hook.KeyDown, []string{"r", "ctrl", "shift"}, func(e hook.Event) {
