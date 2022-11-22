@@ -304,8 +304,9 @@ func Add(cancel context.CancelFunc, translator intf.Translator) {
 			return
 		}
 		if readRU {
+			processedString, _ := RegexWorkRu(text)
 			translator.OnlyOriginalRu()
-			translator.Go(text)
+			translator.Go(processedString)
 		} else {
 			// translator.OnlyOriginal()
 			translator.OnlyTranslate()
@@ -336,6 +337,8 @@ func Event() {
 func RegexWork(tt string) (out string, err error) {
 	tt = strings.ReplaceAll(tt, "\n", "")
 	tt = strings.ReplaceAll(tt, "\r", "")
+	tt = strings.ReplaceAll(tt, "\"", "")
+	tt = strings.ReplaceAll(tt, "'", "")
 	//tt = strings.ReplaceAll(tt, "»", "")
 	//tt = strings.ReplaceAll(tt, "«", "")
 
@@ -371,6 +374,9 @@ func RegexWork(tt string) (out string, err error) {
 }
 
 func RegexWorkRu(tt string) (out string, err error) {
+	tt = strings.ReplaceAll(tt, "\"", "")
+	tt = strings.ReplaceAll(tt, "'", "")
+
 	reg0, err := regexp.Compile("[^а-яА-Яa-zA-Z0-9 .,]+")
 	if err != nil {
 		return
