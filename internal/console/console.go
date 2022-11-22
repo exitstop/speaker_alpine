@@ -374,9 +374,6 @@ func RegexWork(tt string) (out string, err error) {
 }
 
 func RegexWorkRu(tt string) (out string, err error) {
-	tt = strings.ReplaceAll(tt, "\"", "")
-	tt = strings.ReplaceAll(tt, "'", "")
-
 	reg0, err := regexp.Compile("[^а-яА-Яa-zA-Z0-9 .,]+")
 	if err != nil {
 		return
